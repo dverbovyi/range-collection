@@ -1,12 +1,12 @@
 export default class RangeCollection {
-// class RangeCollection {
     constructor() {
-        this.collection = {};
-        this.memoizeCache = new Map();
+        this.collection = [];
+        this.sequence = [];
+        this.memorizeCache = new Map();
 
-        // this._generateSequence = this._memorize(this._generateSequence);
-        // this._rangesToSequence = this._memorize(this._rangesToSequence.bind(this));
-        // this._getUniqueInOrder = this._memorize(this._getUniqueInOrder);
+        this._includesSubArray = this._memorize(this._includesSubArray);
+        this._generateSequence = this._memorize(this._generateSequence);
+        this._sequenceToRangeCollection = this._memorize(this._sequenceToRangeCollection.bind(this));
     }
     /**
      * @method add - Adds a range to the collection
@@ -15,12 +15,15 @@ export default class RangeCollection {
     add(range) {
         if (!this._isValidRange(range)) return this;
 
-        const rangeString = this._stringifyRange(range);
+        const rangeSequence = this._generateSequence(range);
 
-        //skip already existing range  
-        if (this.collection[rangeString]) return this;
+        const isExist = this._includesSubArray(rangeSequence, this.sequence);
 
-        return this._merge(range);
+        if (isExist) return this;
+
+        this.sequence = this._getUniqueInOrder(this.sequence.concat(rangeSequence));
+
+        return this._updateCollection();
     }
 
     /**
@@ -28,9 +31,15 @@ export default class RangeCollection {
      * @param {Array<number>} range - Array of two integers that specify beginning and end of range.
      */
     remove(range) {
-        if (!this._isValidRange(range)) return this;
+        const hasIntersection = this._hasIntersection(range);
 
-        return this._merge(range, true);
+        if (!this._isValidRange(range) || !hasIntersection) return this;
+
+        const rangeToRemove = this._generateSequence(range);
+
+        this.sequence = this.sequence.filter(el => !rangeToRemove.includes(el));
+
+        return this._updateCollection();
     }
 
     /**
@@ -38,49 +47,26 @@ export default class RangeCollection {
      * @return {String}
      */
     print() {
-        const ranges = Object.keys(this.collection);
-
-        if (!ranges.length) return '';
-
-        return ranges
-            .sort((r1, r2) => this._parseRange(r1)[0] - this._parseRange(r2)[0])
-            .reduce((acc, rangeString) => acc += `${rangeString} `, '')
-            .trim();
+        return this.collection.join(' ');
     }
 
-    _merge(range, remove) {
-        let isRangeToMergeExist = this._isIntersectionRangeExist(range);
+    _includesSubArray(subArray, array) {
+        return subArray.every(el => array.includes(el));
+    }
 
-        if (!isRangeToMergeExist) {
-            //create a new range
-            return this._update(range);
-        }
+    _hasIntersection([begin, end]) {
+        const _hasIntersection = el => this.sequence.lastIndexOf(el) >= 0
 
-        const collectionSequence = this._rangesToSequence(Object.keys(this.collection));
+        return _hasIntersection(begin) || _hasIntersection(end);
+    }
 
-        const inputSequence = this._generateSequence(range);
-
-        let resultSequence = this._getUniqueInOrder(collectionSequence.concat(inputSequence));
-
-        if (remove) {
-            if (inputSequence.length > 2) {
-                inputSequence.shift();
-            }
-
-            inputSequence.pop();
-
-            resultSequence = resultSequence.filter(item => !inputSequence.includes(item));
-        }
-
-        this._clear();
-
-        this._groupItemsByRange(resultSequence)
-            .map(this._update.bind(this));
+    _updateCollection() {
+        this.collection = this._sequenceToRangeCollection(this.sequence);
 
         return this;
     }
 
-    _groupItemsByRange(sequence) {
+    _sequenceToRangeCollection(sequence) {
         return sequence.reduce((res, item) => {
             const lastSequence = res[res.length - 1];
             const lastItem = lastSequence[lastSequence.length - 1];
@@ -91,25 +77,8 @@ export default class RangeCollection {
                 res.push([item]);
             }
 
-            return res
-        }, [[]]);
-    }
-
-    _update(range) {
-        this.collection[this._stringifyRange(range)] = true;
-        return this;
-    }
-
-    _isIntersectionRangeExist([first, last]) {
-        return Object.keys(this.collection).some(key => {
-            const [begin, end] = this._parseRange(key);
-
-            return last >= begin && end >= first;
-        });
-    }
-
-    _parseRange(rangeString) {
-        return rangeString.match(/[\d]+/g).map(Number);
+            return res;
+        }, [[]]).map(this._stringifyRange);
     }
 
     _isValidRange(range) {
@@ -121,7 +90,8 @@ export default class RangeCollection {
     }
 
     _stringifyRange(range) {
-        return `[${range[0]}, ${range[range.length - 1]})`;
+        const edge = range[range.length - 1] + 1;
+        return `[${range[0]}, ${edge})`;
     }
 
     _getUniqueInOrder(arr) {
@@ -131,37 +101,30 @@ export default class RangeCollection {
     }
 
     _generateSequence([start, end]) {
-        const length = end - start + 1;
+        const length = end - start;
         return Array.from({ length }, (val, i) => i + start);
     }
 
-    _clear() {
-        this.collection = {};
-    }
-
-    _rangesToSequence(ranges) {
-        return ranges.reduce((acc, key) =>
-            acc.concat(this._generateSequence(this._parseRange(key))), []);
-    }
-
     /** 
-     * private @method _memorize - first-order memorization function
+     * @method _memorize - 2-args memorization function
+     * 
      * @return {Function}
     */
-   _memorize(evaluate) {
+    _memorize(evaluate) {
         if (typeof evaluate !== 'function') throw new Error('Evaluation function is required');
 
-        return input => {
-            const key = `${input}`;
-            const cachedValue = this.memoizeCache.get(key);
+        return (...args) => {
+            const [f, s] = args;
+            
+            let key = `${f + s}`;
 
-            if (cachedValue) {
-                return cachedValue;
-            }
+            const cachedValue = this.memorizeCache.get(key);
 
-            const result = evaluate(input);
+            if (cachedValue) return cachedValue;
 
-            this.memoizeCache.set(key, result);
+            const result = evaluate(...args);
+
+            this.memorizeCache.set(key, result);
 
             return result;
         }

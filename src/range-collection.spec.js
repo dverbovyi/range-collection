@@ -73,4 +73,11 @@ describe('RangeCollection', () => {
 
         expect(rc.print()).toBe('[1, 3) [19, 21)');
     });
+// ===
+
+    test('rc.remove([3, 19]) should display: [1, 3) [19, 21)', () => {
+        rc.remove([3, 19]);
+
+        expect(rc.print()).toBe('[1, 3) [19, 21)');
+    });
 });

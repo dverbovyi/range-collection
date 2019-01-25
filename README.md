@@ -12,7 +12,9 @@ validate test-cases:
 
 	npm test
 
-[online demo](https://playcode.io/232450?tabs=console&script.js&output)
+[CI build status](https://travis-ci.org/dverbovyi/range-collection)
+
+[playground](https://playcode.io/232450?tabs=console&script.js&output)
 
 ### Task description: 
 **Implement a 'Range Collection' class.**

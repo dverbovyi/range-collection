@@ -1,5 +1,5 @@
 # Range Collection
-==============================
+
 ### Setup
 install dev-dependencies:
 
@@ -11,7 +11,7 @@ validate test-cases:
 
 [online demo](https://playcode.io/232450?tabs=console&script.js&output)
 
-#### Task description: 
+### Task description: 
 **Implement a 'Range Collection' class.**
 
  A pair of integers define a range, for example: [1, 5). This range includes integers: 1, 2, 3, and 4.

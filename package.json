@@ -1,0 +1,16 @@
+{
+  "name": "range-collection",
+  "version": "0.0.1",
+  "description": "test task",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Dmitry Verbovyi",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-jest": "^21.0.2",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^21.1.0"
+  }
+}

@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/dverbovyi/range-collection.svg?branch=master)](https://travis-ci.org/dverbovyi/range-collection) 
+[![Maintainability](https://api.codeclimate.com/v1/badges/367f3a6a2d6b0bae0e53/maintainability)](https://codeclimate.com/github/dverbovyi/range-collection/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/367f3a6a2d6b0bae0e53/test_coverage)](https://codeclimate.com/github/dverbovyi/range-collection/test_coverage)
+
 # Range Collection
 
 ### Setup
